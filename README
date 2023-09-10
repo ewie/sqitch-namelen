@@ -1,0 +1,34 @@
+Demo for detecting truncated Postgres identifiers in Sqitch
+
+    $ createdb test
+    $ export SQITCH_TARGET=db:pg:test
+
+    $ ./test.sh 63
+    Deploying changes to db:pg:test
+      + namelen .. ok
+    Reverting all changes from db:pg:test
+    Will revert the following changes:
+    namelen
+      - namelen .. ok
+
+    $ echo $?
+    0
+
+    $ ./test.sh 64
+
+    Deploying changes to db:pg:test
+      + namelen .. psql:deploy/namelen.sql:5: NOTICE:  identifier "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" will be truncated to "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+    ok
+    Reverting all changes from db:pg:test
+    Will revert the following changes:
+    namelen
+      - namelen .. psql:revert/namelen.sql:5: NOTICE:  identifier "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" will be truncated to "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+    ok
+    error: detected truncated identifiers, see test.log
+
+    $ echo $?
+    1
+
+    $ cat test.log
+    psql:deploy/namelen.sql:5: NOTICE:  identifier "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" will be truncated to "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+    psql:revert/namelen.sql:5: NOTICE:  identifier "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" will be truncated to "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
